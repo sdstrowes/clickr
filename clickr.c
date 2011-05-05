@@ -408,7 +408,7 @@ int write_config(char* auth_token)
 	strcat(config_path, "/");
 	strcat(config_path, config_file);
 
-    config_init(&cfg);
+	config_init(&cfg);
 	root = config_root_setting(&cfg);
 
 	/* The three tokens we need to store. */
@@ -420,11 +420,11 @@ int write_config(char* auth_token)
 	config_setting_set_string(setting, secret);
 
 	/* Write the file! */
-    if (!config_write_file(&cfg, config_path)) {
-         fprintf(stderr, "%d - %s\n", 
+	if (!config_write_file(&cfg, config_path)) {
+		fprintf(stderr, "%d - %s\n", 
  				config_error_line(&cfg),
 				config_error_text(&cfg));
-    }
+	}
 
 	/* Clean up */
 	free(config_path);
