@@ -337,16 +337,16 @@ int read_config()
 	strcat(config_path, "/");
 	strcat(config_path, config_file);
 
-    config_init(&cfg);
+	config_init(&cfg);
  
-    if (!config_read_file(&cfg, config_path)) {
-         fprintf(stderr, "%d - %s\n", 
- 				config_error_line(&cfg),
+	if (!config_read_file(&cfg, config_path)) {
+		fprintf(stderr, "%d - %s\n", 
+				config_error_line(&cfg),
 				config_error_text(&cfg));
-        config_destroy(&cfg);
+		config_destroy(&cfg);
 		free(config_path);
-        return 1;
-    }
+		return 1;
+	}
 	free(config_path);
 
 	/* api_key */
