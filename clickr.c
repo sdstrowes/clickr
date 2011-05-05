@@ -350,36 +350,36 @@ int read_config()
 	free(config_path);
 
 	/* api_key */
-    if (config_lookup_string(&cfg, "api_key", &api_key_temp)) {
+	if (config_lookup_string(&cfg, "api_key", &api_key_temp)) {
 		api_key = (char*)malloc(strlen(api_key_temp) +1);
 		strcpy(api_key, api_key_temp);
 	}
-    else {
+	else {
 		config_destroy(&cfg);
-        return 2;
+		return 2;
 	}
 
 	/* secret */
-    if (config_lookup_string(&cfg, "secret", &secret_temp)) {
+	if (config_lookup_string(&cfg, "secret", &secret_temp)) {
 		secret = (char*)malloc(strlen(secret_temp) +1);
 		strcpy(secret, secret_temp);
 	}
-    else {
+	else {
 		config_destroy(&cfg);
-        return 2;
+		return 2;
 	}
 
 	/* auth_token */
-    if (config_lookup_string(&cfg, "auth_token", &auth_token_temp)) {
+	if (config_lookup_string(&cfg, "auth_token", &auth_token_temp)) {
 		auth_token = (char*)malloc(strlen(auth_token_temp) +1);
 		strcpy(auth_token, auth_token_temp);
 	}
-    else {
+	else {
 		config_destroy(&cfg);
-        return 3;
+		return 3;
 	}
  
-    config_destroy(&cfg);
+	config_destroy(&cfg);
 
 	return 0;
 }
