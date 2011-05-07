@@ -268,7 +268,7 @@ void authorise_client()
 
 /* upload_photo:
  * Quite simply, uploads a photo with the given parameters. */
-void upload_photo(char* auth_token, char* filename, char* title, char* description)
+void upload_photo(char* auth_token, char* filename, char* title, char* description, char* tags)
 {
 	CURL *curl;
 	CURLcode rt;
@@ -283,7 +283,7 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 		curl_easy_setopt(curl, CURLOPT_URL, "http://api.flickr.com/services/upload/");
 		/* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
 
-		md5sum(md5, 9, secret, "api_key", api_key, "auth_token", auth_token, "description", description, "title", title);
+		md5sum(md5, 11, secret, "api_key", api_key, "auth_token", auth_token, "description", description, "tags", tags, "title", title);
 
 		/* Build the form post */
 		curl_formadd(&formpost, &lastptr,
@@ -305,6 +305,10 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 		curl_formadd(&formpost, &lastptr,
 					 CURLFORM_COPYNAME, "title",
 					 CURLFORM_COPYCONTENTS, title, CURLFORM_END);
+
+		curl_formadd(&formpost, &lastptr,
+					 CURLFORM_COPYNAME, "tags",
+					 CURLFORM_COPYCONTENTS, tags, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
 					 CURLFORM_COPYNAME, "photo",
@@ -447,6 +451,7 @@ int main(int argc, char* argv[])
 	char* filename    = NULL;
 	char* title       = NULL;
 	char* description = NULL;
+	char* tags = NULL;
 
 	/* Pull in configuration data */
 	rt = read_config();
@@ -464,7 +469,7 @@ int main(int argc, char* argv[])
 
 	/* Parse options. The important option is 'h'ost. The others are
 	   optional. */
-	while ((opt = getopt(argc, argv, "af:d:t:")) != -1) {
+	while ((opt = getopt(argc, argv, "af:d:t:l:")) != -1) {
 		switch (opt) {
 		case 'a':
 			authorise_client();
@@ -480,6 +485,10 @@ int main(int argc, char* argv[])
 		case 'd':
 			description = (char*)malloc(strlen(optarg)+1);
 			strcpy(description, optarg);
+			break;
+		case 'l':
+			tags = (char*)malloc(strlen(optarg)+1);
+			strcpy(tags, optarg);
 			break;
 		}
 	}
@@ -497,9 +506,9 @@ int main(int argc, char* argv[])
 
 	upload_photo(auth_token, filename,
 				 (title == NULL)? filename : title,
-				 (description == NULL)? filename : description);
+				 (description == NULL)? filename : description,
+				 (tags == NULL)? "" : tags);
 
-
-	sleep(10);
-	exit(1);
+	/*sleep(10);*/
+	/*exit(1);*/
 }
