@@ -283,7 +283,7 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 		curl_easy_setopt(curl, CURLOPT_URL, "http://api.flickr.com/services/upload/");
 		/* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
 
-		md5sum(md5, 5, secret, "api_key", api_key, "auth_token", auth_token);
+		md5sum(md5, 9, secret, "api_key", api_key, "auth_token", auth_token, "description", description, "title", title);
 
 		/* Build the form post */
 		curl_formadd(&formpost, &lastptr,
@@ -299,6 +299,14 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 					 CURLFORM_COPYCONTENTS, md5, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
+					 CURLFORM_COPYNAME, "description",
+					 CURLFORM_COPYCONTENTS, description, CURLFORM_END);
+
+		curl_formadd(&formpost, &lastptr,
+					 CURLFORM_COPYNAME, "title",
+					 CURLFORM_COPYCONTENTS, title, CURLFORM_END);
+
+		curl_formadd(&formpost, &lastptr,
 					 CURLFORM_COPYNAME, "photo",
 					 CURLFORM_FILE, filename, CURLFORM_END);
 
@@ -306,8 +314,8 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 
 		printf("Uploading...\n");
 		rt = curl_easy_perform(curl);
-		if (!rt) {
-			fprintf(stderr, "An error occurred when sending the request for the frob token!\n");
+		if (rt) {
+			fprintf(stderr, "An error occurred during upload!\n");
 		}
 
 		/* Done. Cleanup. */ 
