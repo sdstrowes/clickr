@@ -3,7 +3,7 @@
 PATH=$PATH:~/release/clickr/
 QUEUE_DIR=~/.clickr-queue
 
-PHOTO=`ls -t $QUEUE_DIR/*.jpg |  head -n1`
+PHOTO=`ls -t $QUEUE_DIR/*.jpg | tail -n1`
 
 # If there is no photo, bail.
 if [ ! $PHOTO ]

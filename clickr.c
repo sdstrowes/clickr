@@ -53,35 +53,39 @@ void sprint_hex(char* output, unsigned char* char_buf, int len)
  */
 void md5sum(char* output, int counter, ...)
 {
-	//#############################################################
-	//#############################################################
-	//#############################################################
-	//#############################################################
-	//
-	// WARNING: Fixed size buffer likely to overflow.
-	//
-	//#############################################################
-	//#############################################################
-	//#############################################################
-	//#############################################################
-
-	char* md5_string[1024];
 	va_list argp;
-	char* p, *string;
-	int i, str_len;
 	unsigned char temp[MD5_DIGEST_LENGTH];
+	char* md5_string;
+	int full_len;
+	int i, str_len;
+	int buffer_size = 10;
 
-	memset(md5_string, '\0', 1024);
+	md5_string = (char*)malloc(buffer_size);
+	md5_string[0] = '\0';
 
+	full_len = 0;
 	va_start(argp, secret);
 	for (i = 0; i < counter; i++) {
-		string = va_arg(argp, char*);
-		strncat(md5_string, string, strlen(string));
+		char* string = va_arg(argp, char*);
+		int len = strlen(string);
+
+		/* If the buffer is not large enough, expand until it is. */
+		while (len + full_len > buffer_size - 1) {
+			buffer_size += buffer_size;
+			md5_string = realloc(md5_string, buffer_size);
+		}
+
+		strncat(md5_string, string, len);
+
+		full_len += len;
+		md5_string[full_len] = '\0';
 	}
 	va_end(argp);
 
 	str_len = strlen(md5_string);
 	MD5((const unsigned char*)md5_string, (unsigned int)str_len, temp);
+
+	free(md5_string);
 
 	sprint_hex(output, temp, MD5_DIGEST_LENGTH);
 	output[129] = '\0';
