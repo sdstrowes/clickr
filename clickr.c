@@ -175,7 +175,7 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 	 * generated. */
 	printf("Follow auth URL:\n");
 	printf("http://flickr.com/services/auth/?api_key=%s&frob=%s&perms=write&api_sig=%s\n", 
-		   api_key, frob, md5);
+	       api_key, frob, md5);
 
 	printf("Have you authorised? [y] ");
 	fflush(stdout);
@@ -295,7 +295,7 @@ void authorise_client()
 		/* Done. Cleanup. */
 		free(options);
 		curl_easy_cleanup(curl);
- 		curl_formfree(formpost);
+		curl_formfree(formpost);
 	}
 }
 
@@ -305,7 +305,7 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 {
 	CURL *curl;
 	CURLcode rt;
- 	struct curl_httppost *formpost=NULL;
+	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
 	unsigned char md5[DIGEST_BUFFER_SIZE];
 
@@ -320,32 +320,32 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 
 		/* Build the form post */
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "api_key",
-					 CURLFORM_COPYCONTENTS, api_key, CURLFORM_END);
+		             CURLFORM_COPYNAME, "api_key",
+		             CURLFORM_COPYCONTENTS, api_key, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "auth_token",
-					 CURLFORM_COPYCONTENTS, auth_token, CURLFORM_END);
+		             CURLFORM_COPYNAME, "auth_token",
+		             CURLFORM_COPYCONTENTS, auth_token, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "api_sig",
-					 CURLFORM_COPYCONTENTS, md5, CURLFORM_END);
+		             CURLFORM_COPYNAME, "api_sig",
+		             CURLFORM_COPYCONTENTS, md5, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "description",
-					 CURLFORM_COPYCONTENTS, description, CURLFORM_END);
+		             CURLFORM_COPYNAME, "description",
+		             CURLFORM_COPYCONTENTS, description, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "title",
-					 CURLFORM_COPYCONTENTS, title, CURLFORM_END);
+		             CURLFORM_COPYNAME, "title",
+		             CURLFORM_COPYCONTENTS, title, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "tags",
-					 CURLFORM_COPYCONTENTS, tags, CURLFORM_END);
+		             CURLFORM_COPYNAME, "tags",
+		             CURLFORM_COPYCONTENTS, tags, CURLFORM_END);
 
 		curl_formadd(&formpost, &lastptr,
-					 CURLFORM_COPYNAME, "photo",
-					 CURLFORM_FILE, filename, CURLFORM_END);
+		             CURLFORM_COPYNAME, "photo",
+		             CURLFORM_FILE, filename, CURLFORM_END);
 
 		curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 
@@ -386,8 +386,8 @@ int read_config()
  
 	if (!config_read_file(&cfg, config_path)) {
 		fprintf(stderr, "%d - %s\n", 
-				config_error_line(&cfg),
-				config_error_text(&cfg));
+		        config_error_line(&cfg),
+		        config_error_text(&cfg));
 		config_destroy(&cfg);
 		free(config_path);
 		return 1;
@@ -467,8 +467,8 @@ int write_config(char* auth_token)
 	/* Write the file! */
 	if (!config_write_file(&cfg, config_path)) {
 		fprintf(stderr, "%d - %s\n", 
- 				config_error_line(&cfg),
-				config_error_text(&cfg));
+		        config_error_line(&cfg),
+		        config_error_text(&cfg));
 	}
 
 	/* Clean up */
@@ -538,9 +538,9 @@ int main(int argc, char* argv[])
 	}
 
 	upload_photo(auth_token, filename,
-				 (title == NULL)? filename : title,
-				 (description == NULL)? filename : description,
-				 (tags == NULL)? "" : tags);
+	             (title == NULL)? filename : title,
+	             (description == NULL)? filename : description,
+	             (tags == NULL)? "" : tags);
 
 	/*sleep(10);*/
 	/*exit(1);*/
