@@ -194,8 +194,22 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if(curl) {
-		char options[512];
-		memset(options, '\0', 512);
+		int frag1_len, frag2_len, frag3_len, api_key_len, frob_len, md5_len, len;
+		char* frag1 = "method=flickr.auth.getToken&api_key=";
+		char* frag2 = "&frob=";
+		char* frag3 = "&api_sig=";
+		char* options;
+
+		frag1_len =   strlen(frag1);
+		api_key_len = strlen(api_key);
+		frag2_len =   strlen(frag2);
+		frob_len =    strlen(frob);
+		frag3_len =   strlen(frag3);
+		md5_len =     DIGEST_BUFFER_SIZE;
+
+		len = frag1_len + api_key_len + frag2_len + frob_len + frag3_len + md5_len;
+		options = (char*)malloc(len + 1);
+		memset(options, '\0', len + 1);
 
 		/* Set Host to target in HTTP header, and set response handler
 		 * function */
@@ -206,18 +220,19 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 		md5sum(md5, 6, secret, "api_key", api_key, "frob", frob, "methodflickr.auth.getToken");
 
 		/* Build the query */
-		strncat(options, "method=flickr.auth.getToken&api_key=", 36);
-		strncat(options, api_key, strlen(api_key));
-		strncat(options, "&frob=", 6);
-		strncat(options, frob, strlen(frob));
-		strncat(options, "&api_sig=", 9);
-		strncat(options, md5, strlen(md5));
+		strncat(options, frag1,   frag1_len);
+		strncat(options, api_key, api_key_len);
+		strncat(options, frag2,   frag2_len);
+		strncat(options, frob,    frob_len);
+		strncat(options, frag3,   frag3_len);
+		strncat(options, md5,     md5_len);
 
 		/* Set the POST fields, and fire. */
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, options);
 		res = curl_easy_perform(curl);
 
 		/* Done. Cleanup. */ 
+		free(options);
 		curl_easy_cleanup(curl);
 		curl_formfree(formpost);
 	}	
@@ -239,7 +254,19 @@ void authorise_client()
  
 	curl = curl_easy_init();
 	if(curl) {
-		char options[512];
+		int frag1_len, frag2_len, api_key_len, md5_len, len;
+		char* frag1 = "method=flickr.auth.getFrob&api_key=";
+		char* frag2 = "&api_sig=";
+		char* options;
+
+		frag1_len =   strlen(frag1);
+		api_key_len = strlen(api_key);
+		frag2_len =   strlen(frag2);
+		md5_len =     DIGEST_BUFFER_SIZE;
+
+		len = frag1_len + api_key_len + frag2_len + md5_len;
+		options = (char*)malloc(len + 1);
+		memset(options, '\0', len + 1);
 
 		/* Set Host to target in HTTP header, and set response handler
 		 * function */
@@ -250,11 +277,12 @@ void authorise_client()
 		md5sum(md5, 4, secret, "api_key", api_key, "methodflickr.auth.getFrob");
 
 		/* Build the query */
-		memset(options, '\0', 512);
-		strncat(options, "method=flickr.auth.getFrob&api_key=", 35);
-		strncat(options, api_key, strlen(api_key));
-		strncat(options, "&api_sig=", 9);
-		strncat(options, md5, strlen(md5));
+		strncat(options, frag1,   frag1_len);
+		strncat(options, api_key, api_key_len);
+		strncat(options, frag2,   frag2_len);
+		strncat(options, md5,     md5_len);
+
+		printf("%s \n", options);
 
 		/* Set the POST fields, and fire. */
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, options);
@@ -264,7 +292,8 @@ void authorise_client()
 			fprintf(stderr, "An error occurred when uploading!\n");
 		}
 
-		/* Done. Cleanup. */ 
+		/* Done. Cleanup. */
+		free(options);
 		curl_easy_cleanup(curl);
  		curl_formfree(formpost);
 	}
