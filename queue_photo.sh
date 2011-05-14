@@ -1,6 +1,7 @@
 #!/bin/sh
 
-QUEUE_DIR=sdstrowes@sdstrowes.co.uk:~/.clickr-queue
+host=sdstrowes@sdstrowes.co.uk
+queue_dir=.clickr-queue
 cp=scp
 
 printHelp()
@@ -49,21 +50,25 @@ fi
 
 
 # Ensure there's a valid upload queue directory.
-if [ -e "$QUEUE_DIR" ]  && [ ! -d "$QUEUE_DIR" ]
-then
-    echo "Something called ~/.clickr-queue exists! Remove please."
+ssh $host "if [ -e \"$queue_dir\" ]  && [ ! -d \"$queue_dir\" ] ; then
+    echo 'Something called '$queue_dir' exists! Remove please.'
 	exit 1
-elif [ ! -e "$QUEUE_DIR" ]
+elif [ ! -e \"$queue_dir\" ]
 then
-	mkdir -p "$QUEUE_DIR"
-fi
+	mkdir -p \"$queue_dir\"
+fi"
 
 echo $PHOTO
 echo $TITLE
 echo $DESCRIPTION
 echo $TAGS
 
-$cp $PHOTO $QUEUE_DIR
-echo "TITLE	$TITLE" > $QUEUE_DIR/$PHOTO.description
-echo "DESCRIPTION	$DESCRIPTION" >> $QUEUE_DIR/$PHOTO.description
-echo "TAGS	$TAGS" >> $QUEUE_DIR/$PHOTO.description
+$cp $PHOTO $host:$queue_dir
+
+tmp=/tmp/$PHOTO.description
+
+echo "TITLE	$TITLE"               >  $tmp 
+echo "DESCRIPTION	$DESCRIPTION" >> $tmp
+echo "TAGS	$TAGS"                >> $tmp
+
+$cp $tmp $host:$queue_dir
