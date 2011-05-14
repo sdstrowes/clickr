@@ -1,6 +1,7 @@
 #!/bin/sh
 
-QUEUE_DIR=~/.clickr-queue
+QUEUE_DIR=sdstrowes@sdstrowes.co.uk:~/.clickr-queue
+cp=scp
 
 printHelp()
 {
@@ -62,7 +63,7 @@ echo $TITLE
 echo $DESCRIPTION
 echo $TAGS
 
-cp $PHOTO $QUEUE_DIR
+$cp $PHOTO $QUEUE_DIR
 echo "TITLE	$TITLE" > $QUEUE_DIR/$PHOTO.description
 echo "DESCRIPTION	$DESCRIPTION" >> $QUEUE_DIR/$PHOTO.description
 echo "TAGS	$TAGS" >> $QUEUE_DIR/$PHOTO.description
