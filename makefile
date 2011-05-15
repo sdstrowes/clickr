@@ -1,6 +1,7 @@
+PKG_CONFIG_PATH := ${PKG_CONFIG_PATH}:${HOME}/lib/pkgconfig
+
 CFLAGS=-pedantic  -pedantic-errors -w  -Wextra  -Wall \
        -Waggregate-return -Wno-attributes \
-       -Wno-builtin-macro-redefined \
        -Wcast-align  -Wcast-qual -Wclobbered \
        -Wconversion  -Wcoverage-mismatch  -Wno-deprecated \
        -Wno-div-by-zero -Wempty-body -Wno-endif-labels \
@@ -9,12 +10,13 @@ CFLAGS=-pedantic  -pedantic-errors -w  -Wextra  -Wall \
        -Wformat-nonliteral -Wformat-security  -Wformat-y2k \
        -Wignored-qualifiers -Wimplicit \
        -Woverlength-strings \
-       -Wpacked  -Wpacked-bitfield-compat  -Wpadded \
+       -Wpacked -Wpadded \
        -Wno-pointer-to-int-cast \
        -Wredundant-decls  -Wshadow \
        -Wunreachable-code \
        -Wunused \
-		-g
+		-g -std=c99
+
 
 LDFLAGS=
 

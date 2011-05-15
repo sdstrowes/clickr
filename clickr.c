@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 
+#include <getopt.h>
 #include <string.h>
 #include <openssl/md5.h>
 #include <sys/time.h>
@@ -31,6 +32,120 @@ char* secret = NULL;
 char* api_key = NULL;
 char* auth_token = NULL;
 
+/* read_config:
+ * Reads configuration file from ~/.clickr */
+int read_config()
+{
+	config_t cfg;
+	char* config_file = ".clickr";
+	const char* api_key_temp, *secret_temp, *auth_token_temp;
+
+	/* Determine home directory for current user, and construct the
+	 * path to the configuration file name. */
+	int uid = getuid();
+	struct passwd* tmp = getpwuid(uid);
+	/* The +1's here indicate the trailing slash on the path, and the
+	 * null terminator. */
+	int path_length = strlen(tmp->pw_dir) + 1 + strlen(config_file) + 1;
+	char* config_path = (char*)malloc(path_length);
+	memset(config_path, '\0', path_length);
+	strcat(config_path, tmp->pw_dir);
+	strcat(config_path, "/");
+	strcat(config_path, config_file);
+
+	config_init(&cfg);
+ 
+	if (!config_read_file(&cfg, config_path)) {
+		fprintf(stderr, "%d - %s\n", 
+		        config_error_line(&cfg),
+		        config_error_text(&cfg));
+		config_destroy(&cfg);
+		free(config_path);
+		return 1;
+	}
+	free(config_path);
+
+	/* api_key */
+	if (config_lookup_string(&cfg, "api_key", &api_key_temp)) {
+		api_key = (char*)malloc(strlen(api_key_temp) +1);
+		strcpy(api_key, api_key_temp);
+	}
+	else {
+		config_destroy(&cfg);
+		return 2;
+	}
+
+	/* secret */
+	if (config_lookup_string(&cfg, "secret", &secret_temp)) {
+		secret = (char*)malloc(strlen(secret_temp) +1);
+		strcpy(secret, secret_temp);
+	}
+	else {
+		config_destroy(&cfg);
+		return 2;
+	}
+
+	/* auth_token */
+	if (config_lookup_string(&cfg, "auth_token", &auth_token_temp)) {
+		auth_token = (char*)malloc(strlen(auth_token_temp) +1);
+		strcpy(auth_token, auth_token_temp);
+	}
+	else {
+		config_destroy(&cfg);
+		return 3;
+	}
+ 
+	config_destroy(&cfg);
+
+	return 0;
+}
+
+/* write_config:
+ * Writes the configuration file to ~/.clickr, using the
+ * already-known API key and the shared secret, the final parameter
+ * being 'auth_token' */
+int write_config(char* auth_token)
+{
+	config_t cfg;
+	config_setting_t* root;
+	config_setting_t* setting;
+	char* config_file = ".clickr";
+
+	/* Determine home directory for current user, and construct the
+	 * path to the configuration file name. */
+	int uid = getuid();
+	struct passwd* tmp = getpwuid(uid);
+	/* The +1's here indicate the trailing slash on the path, and the
+	 * null terminator. */
+	int path_length = strlen(tmp->pw_dir) + 1 + strlen(config_file) + 1;
+	char* config_path = (char*)malloc(path_length);
+	memset(config_path, '\0', path_length);
+	strcat(config_path, tmp->pw_dir);
+	strcat(config_path, "/");
+	strcat(config_path, config_file);
+
+	config_init(&cfg);
+	root = config_root_setting(&cfg);
+
+	/* The three tokens we need to store. */
+	setting = config_setting_add(root, "auth_token", CONFIG_TYPE_STRING);
+	config_setting_set_string(setting, auth_token);
+	setting = config_setting_add(root, "api_key", CONFIG_TYPE_STRING);
+	config_setting_set_string(setting, api_key);
+	setting = config_setting_add(root, "secret", CONFIG_TYPE_STRING);
+	config_setting_set_string(setting, secret);
+
+	/* Write the file! */
+	if (!config_write_file(&cfg, config_path)) {
+		fprintf(stderr, "%d - %s\n", 
+		        config_error_line(&cfg),
+		        config_error_text(&cfg));
+	}
+
+	/* Clean up */
+	free(config_path);
+	config_destroy(&cfg);
+}
 
 /* sprint_hex:
  * print a long hex value into a string buffer. This function will
@@ -144,7 +259,7 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
 
-	unsigned char md5[DIGEST_BUFFER_SIZE];
+	char md5[DIGEST_BUFFER_SIZE];
 	char* frob, *end, *frob_string;
 
 	/* Locate the start of the frob token. Then locate the start of
@@ -248,7 +363,7 @@ void authorise_client()
 	CURLcode rt;
 	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
-	unsigned char md5[DIGEST_BUFFER_SIZE];
+	char md5[DIGEST_BUFFER_SIZE];
  
 	curl_global_init(CURL_GLOBAL_ALL);
  
@@ -307,7 +422,7 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 	CURLcode rt;
 	struct curl_httppost *formpost=NULL;
 	struct curl_httppost *lastptr=NULL;
-	unsigned char md5[DIGEST_BUFFER_SIZE];
+	char md5[DIGEST_BUFFER_SIZE];
 
 	curl = curl_easy_init();
 	if(curl) {
@@ -361,120 +476,6 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 	}
 }
 
-/* read_config:
- * Reads configuration file from ~/.clickr */
-int read_config()
-{
-	config_t cfg;
-	char* config_file = ".clickr";
-	char* api_key_temp, *secret_temp, *auth_token_temp;
-
-	/* Determine home directory for current user, and construct the
-	 * path to the configuration file name. */
-	int uid = getuid();
-	struct passwd* tmp = getpwuid(uid);
-	/* The +1's here indicate the trailing slash on the path, and the
-	 * null terminator. */
-	int path_length = strlen(tmp->pw_dir) + 1 + strlen(config_file) + 1;
-	char* config_path = (char*)malloc(path_length);
-	memset(config_path, '\0', path_length);
-	strcat(config_path, tmp->pw_dir);
-	strcat(config_path, "/");
-	strcat(config_path, config_file);
-
-	config_init(&cfg);
- 
-	if (!config_read_file(&cfg, config_path)) {
-		fprintf(stderr, "%d - %s\n", 
-		        config_error_line(&cfg),
-		        config_error_text(&cfg));
-		config_destroy(&cfg);
-		free(config_path);
-		return 1;
-	}
-	free(config_path);
-
-	/* api_key */
-	if (config_lookup_string(&cfg, "api_key", &api_key_temp)) {
-		api_key = (char*)malloc(strlen(api_key_temp) +1);
-		strcpy(api_key, api_key_temp);
-	}
-	else {
-		config_destroy(&cfg);
-		return 2;
-	}
-
-	/* secret */
-	if (config_lookup_string(&cfg, "secret", &secret_temp)) {
-		secret = (char*)malloc(strlen(secret_temp) +1);
-		strcpy(secret, secret_temp);
-	}
-	else {
-		config_destroy(&cfg);
-		return 2;
-	}
-
-	/* auth_token */
-	if (config_lookup_string(&cfg, "auth_token", &auth_token_temp)) {
-		auth_token = (char*)malloc(strlen(auth_token_temp) +1);
-		strcpy(auth_token, auth_token_temp);
-	}
-	else {
-		config_destroy(&cfg);
-		return 3;
-	}
- 
-	config_destroy(&cfg);
-
-	return 0;
-}
-
-/* write_config:
- * Writes the configuration file to ~/.clickr, using the
- * already-known API key and the shared secret, the final parameter
- * being 'auth_token' */
-int write_config(char* auth_token)
-{
-	config_t cfg;
-	config_setting_t* root;
-	config_setting_t* setting;
-	char* config_file = ".clickr";
-
-	/* Determine home directory for current user, and construct the
-	 * path to the configuration file name. */
-	int uid = getuid();
-	struct passwd* tmp = getpwuid(uid);
-	/* The +1's here indicate the trailing slash on the path, and the
-	 * null terminator. */
-	int path_length = strlen(tmp->pw_dir) + 1 + strlen(config_file) + 1;
-	char* config_path = (char*)malloc(path_length);
-	memset(config_path, '\0', path_length);
-	strcat(config_path, tmp->pw_dir);
-	strcat(config_path, "/");
-	strcat(config_path, config_file);
-
-	config_init(&cfg);
-	root = config_root_setting(&cfg);
-
-	/* The three tokens we need to store. */
-	setting = config_setting_add(root, "auth_token", CONFIG_TYPE_STRING);
-	config_setting_set_string(setting, auth_token);
-	setting = config_setting_add(root, "api_key", CONFIG_TYPE_STRING);
-	config_setting_set_string(setting, api_key);
-	setting = config_setting_add(root, "secret", CONFIG_TYPE_STRING);
-	config_setting_set_string(setting, secret);
-
-	/* Write the file! */
-	if (!config_write_file(&cfg, config_path)) {
-		fprintf(stderr, "%d - %s\n", 
-		        config_error_line(&cfg),
-		        config_error_text(&cfg));
-	}
-
-	/* Clean up */
-	free(config_path);
-	config_destroy(&cfg);
-}
 
 int main(int argc, char* argv[])
 {
