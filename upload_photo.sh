@@ -1,7 +1,6 @@
 #!/bin/sh
 
-LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/lib/
-
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/lib/
 PATH=$PATH:~/release/clickr/
 QUEUE_DIR=~/.clickr-queue
 
@@ -26,6 +25,9 @@ TITLE=`egrep "^TITLE	" $DESCR_FILE | awk 'BEGIN {FS="	"} {print $2}'`
 DESCRIPTION=`egrep "^DESCRIPTION	" $DESCR_FILE | awk 'BEGIN {FS="	"} {print $2}'`
 TAGS=`egrep "^TAGS	" $DESCR_FILE | awk 'BEGIN {FS="	"} {print $2}'`
 
+echo $LD_LIBRARY_PATH
+echo $PATH
+echo $QUEUE_DIR
 echo $PHOTO
 echo $TITLE
 echo $DESCRIPTION
