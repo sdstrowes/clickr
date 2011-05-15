@@ -1,5 +1,7 @@
 #!/bin/sh
 
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/lib/
+
 PATH=$PATH:~/release/clickr/
 QUEUE_DIR=~/.clickr-queue
 
