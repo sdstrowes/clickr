@@ -65,7 +65,7 @@ echo $TAGS
 
 $cp $PHOTO $host:$queue_dir
 
-tmp=/tmp/$PHOTO.description
+tmp=/tmp/`basename $PHOTO`.description
 
 echo "TITLE	$TITLE"               >  $tmp 
 echo "DESCRIPTION	$DESCRIPTION" >> $tmp
