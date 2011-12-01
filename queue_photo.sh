@@ -39,12 +39,12 @@ fi
 
 if [ ! "$DESCRIPTION" ]
 then
-	DESCRIPTION=`basename $PHOTO`
+	DESCRIPTION=`basename "$PHOTO"`
 fi
 
 if [ ! "$TITLE" ]
 then
-	TITLE=`basename $PHOTO`
+	TITLE=`basename "$PHOTO"`
 fi
 
 
@@ -58,17 +58,17 @@ then
 	mkdir -p \"$queue_dir\"
 fi"
 
-echo $PHOTO
-echo $TITLE
-echo $DESCRIPTION
-echo $TAGS
+echo "Photo:		"$PHOTO
+echo "Title:		"$TITLE
+echo "Description:	"$DESCRIPTION
+echo "Tags:		"$TAGS
 
-$cp $PHOTO $host:$queue_dir
+$cp "$PHOTO" $host:$queue_dir
 
-tmp=/tmp/`basename $PHOTO`.description
+tmp=/tmp/`basename "$PHOTO"`.description
 
-echo "TITLE	$TITLE"               >  $tmp 
-echo "DESCRIPTION	$DESCRIPTION" >> $tmp
-echo "TAGS	$TAGS"                >> $tmp
+echo "TITLE	$TITLE"               >  "$tmp"
+echo "DESCRIPTION	$DESCRIPTION" >> "$tmp"
+echo "TAGS	$TAGS"                >> "$tmp"
 
-$cp $tmp $host:$queue_dir
+$cp "$tmp" $host:$queue_dir
