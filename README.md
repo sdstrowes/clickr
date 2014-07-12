@@ -1,4 +1,5 @@
-For licensing, see ./LICENSE
+clickr
+------
 
 This is my own simple upload tool for Flickr. Written in idle time
 over a weekend or two in April 2011, it uploads one file, as specified
@@ -17,10 +18,16 @@ generate the authorisation token. Once this is complete, upload photos
 by running:
 ./clickr -f filename [-t title] [-d description]
 
-This application requires at least the following libraries that are
+building
+========
+
+	cd _build
+	cmake ..
+	make
+
+The build requires at least the following libraries that are
 probably installed on your system, but might not be:
 	 libconfig
-	 libcrypto
 	 libssl
 	 libcurl
 
