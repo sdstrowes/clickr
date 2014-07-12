@@ -10,8 +10,8 @@ gotten from Flickr: http://www.flickr.com/services/api/keys/
 These attributes are stored in ~/.clickr. The format of this
 configuration file is:
 
-api_key = "<api_key>";
-secret = "<shared_secret>";
+	api_key = "<api_key>";
+	secret = "<shared_secret>";
 
 With these in place, run ./clickr -a and follow the instructions to
 generate the authorisation token. Once this is complete, upload photos
