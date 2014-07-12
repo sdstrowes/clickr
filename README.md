@@ -21,6 +21,7 @@ by running:
 building
 ========
 
+	mkdir _build
 	cd _build
 	cmake ..
 	make
