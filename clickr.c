@@ -225,9 +225,37 @@ void md5sum(char* output, int counter, ...)
  * Prints basic help for clickr. */
 void print_usage(char* argv[])
 {
-	fprintf(stderr, "Usage:");
-	fprintf(stderr, "\t%s -a\t(To authenticate with Flickr)\n", argv[0]);
-	fprintf(stderr, "\t%s -f filename [-t title] [-d description]\n", argv[0]);
+	printf("%s is a command line tool to upload photos to Flickr\n", argv[0]);
+	printf("Questions: Stephen D. Strowes <sdstrowes@gmail.com>\n");
+	printf("\n");
+	printf("There is a two-step process to getting going.\n");
+	printf("\n");
+	printf("%s needs to authorise with your flickr account to be able to work. To\n", argv[0]);
+	printf("bootstrap, you need to an API key and a shared secret from\n");
+	printf("https://www.flickr.com/services/api/keys/\n");
+	printf("They should be put into ~/.clickr in the format:\n");
+	printf("\n");
+	printf(" api_key = \"your key\"\n");
+	printf(" secret = \"your secret\"\n");
+	printf("\n");
+	printf("From there, you can run:\n");
+	printf("\t%s -a -c /path/to/ca-certificates.crt\n", argv[0]);
+	printf("If -c is not specified, %s will assume /usr/lib/ssl/certs/ca-certificates.crt\n", argv[0]);
+	printf("If that's successful, %s will drop the additional creds into ~/.clickr, and\n", argv[0]);
+	printf("then you're good to go.\n");
+	printf("\n");
+	printf("More generally, you'd run as:\n");
+	printf("\t%s -f filename [-t title] [-d description]\n", argv[0]);
+
+	printf("Options:");
+	printf(" -a:\tThe auth step mentioned above.\n");
+	printf(" -c:\tOverride the default location for the CA certs bundle.\n");
+	printf(" -d:\tA description of the image being uploaded.\n");
+	printf(" -f:\tLocation of the file to upload.\n");
+	printf(" -h:\tThis help information.\n");
+	printf(" -l:\tTags for the image.\n");
+	printf(" -t:\tTitle for the image.\n");
+	printf("\n");
 }
 
 /* handle_auth_token_response:
@@ -520,7 +548,7 @@ int main(int argc, char* argv[])
 	case 0:
 		break;
 	case 1:
-		printf("Error! Cannot read ~/.clickr\n");
+		print_usage(argv);
 		exit(1);
 	case 2:
 		break;
@@ -531,7 +559,7 @@ int main(int argc, char* argv[])
 	}
 
 	/* Parse command-line options. */
-	while ((opt = getopt(argc, argv, "af:d:t:l:c:")) != -1) {
+	while ((opt = getopt(argc, argv, "af:d:t:l:c:h")) != -1) {
 		switch (opt) {
 		case 'a':
 			do_auth = 1;
@@ -556,6 +584,9 @@ int main(int argc, char* argv[])
 			cacert_file = (char*)malloc(strlen(optarg)+1);
 			strcpy(cacert_file, optarg);
 			break;
+		case 'h':
+			print_usage(argv);
+			exit(0);
 		}
 	}
 
