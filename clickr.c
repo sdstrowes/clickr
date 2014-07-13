@@ -1,10 +1,12 @@
 /**
- * For licensing, see ./LICENSE
- * 
  * This is my own simple upload tool for Flickr. It uploads one file,
  * as specified on the command line, to my photostream. It requires an
  * API key and a shared secret, which can be gotten from Flickr.
  * http://www.flickr.com/services/api/keys/
+ *
+ * Stephen D. Strowes, sdstrowes@gmail.com
+ *
+ * Released under a two-clause BSD license; see LICENSE.
  */
 
 #include <stdio.h>
