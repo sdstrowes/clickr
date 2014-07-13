@@ -144,6 +144,10 @@ int write_config(char* auth_token)
 	setting = config_setting_add(root, "secret", CONFIG_TYPE_STRING);
 	config_setting_set_string(setting, secret);
 
+	/* The location of the CA cert bundle */
+	setting = config_setting_add(root, "cacert", CONFIG_TYPE_STRING);
+	config_setting_set_string(setting, cacert_file);
+
 	/* Write the file! */
 	if (!config_write_file(&cfg, config_path)) {
 		fprintf(stderr, "%d - %s\n", 
@@ -502,18 +506,34 @@ int main(int argc, char* argv[])
 {
 	char opt;
 	int rt;
-	int auth = 0;
+	int do_auth = 0;
 	char* filename    = NULL;
 	char* title       = NULL;
 	char* description = NULL;
 	char* tags        = NULL;
 
+	/* Pull in configuration data */
+	rt = read_config();
+	switch (rt) {
+	case 0:
+		break;
+	case 1:
+		printf("Error! Cannot read ~/.clickr\n");
+		exit(1);
+	case 2:
+		break;
+	case 3:
+		break;
+	case 4:
+		break;
+	}
+
 	/* Parse command-line options. */
 	while ((opt = getopt(argc, argv, "af:d:t:l:c:")) != -1) {
 		switch (opt) {
 		case 'a':
-			authorise_client();
-			exit(1);
+			do_auth = 1;
+			break;
 		case 'f':
 			filename = (char*)malloc(strlen(optarg)+1);
 			strcpy(filename, optarg);
@@ -537,22 +557,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	/* Pull in configuration data */
-	rt = read_config();
-	switch (rt) {
-	case 0:
-		break;
-	case 1:
-		printf("Error! Cannot read ~/.clickr\n");
-		exit(1);
-	case 2:
-		break;
-	case 3:
-		break;
-	case 4:
-		printf("I require a path to a CA Cert bundle\n");
-		exit(1);
+	if (do_auth) {
+		authorise_client();
+		exit(0);
 	}
+
 
 	if (auth_token == NULL) {
 		printf("To use clickr, you need an api_key and a shared secret from Flickr.\n");
