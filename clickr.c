@@ -13,16 +13,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <unistd.h>
 
 #include <getopt.h>
-#include <string.h>
 #include <openssl/md5.h>
-#include <sys/time.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 
 #include <curl/curl.h>
 #include <libconfig.h>
