@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <string.h>
 
 #include <getopt.h>
 #include <openssl/md5.h>
