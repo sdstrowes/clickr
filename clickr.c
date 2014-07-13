@@ -2,7 +2,7 @@
  * This is my own simple upload tool for Flickr. It uploads one file,
  * as specified on the command line, to my photostream. It requires an
  * API key and a shared secret, which can be gotten from Flickr.
- * http://www.flickr.com/services/api/keys/
+ * https://www.flickr.com/services/api/keys/
  *
  * Stephen D. Strowes, sdstrowes@gmail.com
  *
@@ -27,6 +27,7 @@
 char* secret = NULL;
 char* api_key = NULL;
 char* auth_token = NULL;
+char* cacert_file = NULL;
 
 /* read_config:
  * Reads configuration file from ~/.clickr */
@@ -34,7 +35,7 @@ int read_config()
 {
 	config_t cfg;
 	char* config_file = ".clickr";
-	const char* api_key_temp, *secret_temp, *auth_token_temp;
+	const char* api_key_temp, *secret_temp, *auth_token_temp, *cacert_file_temp;
 
 	/* Determine home directory for current user, and construct the
 	 * path to the configuration file name. */
@@ -89,6 +90,18 @@ int read_config()
 	else {
 		config_destroy(&cfg);
 		return 3;
+	}
+
+	/* cacert_file */
+	if (cacert_file == NULL) {
+		if (config_lookup_string(&cfg, "cacert", &cacert_file_temp)) {
+			cacert_file = (char*)malloc(strlen(cacert_file_temp)+1);
+			strcpy(cacert_file, cacert_file_temp);
+		}
+		else {
+			config_destroy(&cfg);
+			return 4;
+		}
 	}
  
 	config_destroy(&cfg);
@@ -285,7 +298,7 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 	/* Tell the user the URL to follow to allow the auth token to be
 	 * generated. */
 	printf("Follow auth URL:\n");
-	printf("http://flickr.com/services/auth/?api_key=%s&frob=%s&perms=write&api_sig=%s\n", 
+	printf("https://flickr.com/services/auth/?api_key=%s&frob=%s&perms=write&api_sig=%s\n",
 	       api_key, frob, md5);
 
 	printf("Have you authorised? [y] ");
@@ -322,10 +335,14 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 		options = (char*)malloc(len + 1);
 		memset(options, '\0', len + 1);
 
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_easy_setopt(curl, CURLOPT_CAINFO, cacert_file);
+
 		/* Set Host to target in HTTP header, and set response handler
 		 * function */
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, handle_auth_token_response);
-		curl_easy_setopt(curl, CURLOPT_URL, "http://api.flickr.com/services/rest/");
+		curl_easy_setopt(curl, CURLOPT_URL, "https://api.flickr.com/services/rest/");
 
 		/* Generate md5sum for this request */
 		md5sum(md5, 6, secret, "api_key", api_key, "frob", frob, "methodflickr.auth.getToken");
@@ -346,7 +363,7 @@ size_t handle_getfrob_response(void *buffer, size_t size, size_t nmemb, void *us
 		free(options);
 		curl_easy_cleanup(curl);
 		curl_formfree(formpost);
-	}	
+	}
 }
 
 
@@ -379,10 +396,14 @@ void authorise_client()
 		options = (char*)malloc(len + 1);
 		memset(options, '\0', len + 1);
 
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_easy_setopt(curl, CURLOPT_CAINFO, cacert_file);
+
 		/* Set Host to target in HTTP header, and set response handler
 		 * function */
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, handle_getfrob_response);
-		curl_easy_setopt(curl, CURLOPT_URL, "http://api.flickr.com/services/rest/");
+		curl_easy_setopt(curl, CURLOPT_URL, "https://api.flickr.com/services/rest/");
 
 		/* Generate md5sum for this request */
 		md5sum(md5, 4, secret, "api_key", api_key, "methodflickr.auth.getFrob");
@@ -422,9 +443,13 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 
 	curl = curl_easy_init();
 	if(curl) {
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1);
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2);
+		curl_easy_setopt(curl, CURLOPT_CAINFO, cacert_file);
+
 		/* Set Host to target in HTTP header, and set response handler
 		 * function */
-		curl_easy_setopt(curl, CURLOPT_URL, "http://api.flickr.com/services/upload/");
+		curl_easy_setopt(curl, CURLOPT_URL, "https://up.flickr.com/services/upload/");
 		/* curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L); */
 
 		md5sum(md5, 11, secret, "api_key", api_key, "auth_token", auth_token, "description", description, "tags", tags, "title", title);
@@ -463,7 +488,7 @@ void upload_photo(char* auth_token, char* filename, char* title, char* descripti
 		printf("Uploading...\n");
 		rt = curl_easy_perform(curl);
 		if (rt) {
-			fprintf(stderr, "An error occurred during upload!\n");
+			fprintf(stderr, "An error occurred during upload: %s\n", curl_easy_strerror(rt));
 		}
 
 		/* Done. Cleanup. */ 
@@ -481,25 +506,10 @@ int main(int argc, char* argv[])
 	char* filename    = NULL;
 	char* title       = NULL;
 	char* description = NULL;
-	char* tags = NULL;
+	char* tags        = NULL;
 
-	/* Pull in configuration data */
-	rt = read_config();
-	switch (rt) {
-	case 0:
-		break;
-	case 1:
-		printf("Error! Cannot read ~/.clickr\n");
-		exit(1);
-	case 2:
-		break;
-	case 3:		
-		break;
-	}
-
-	/* Parse options. The important option is 'h'ost. The others are
-	   optional. */
-	while ((opt = getopt(argc, argv, "af:d:t:l:")) != -1) {
+	/* Parse command-line options. */
+	while ((opt = getopt(argc, argv, "af:d:t:l:c:")) != -1) {
 		switch (opt) {
 		case 'a':
 			authorise_client();
@@ -520,12 +530,33 @@ int main(int argc, char* argv[])
 			tags = (char*)malloc(strlen(optarg)+1);
 			strcpy(tags, optarg);
 			break;
+		case 'c':
+			cacert_file = (char*)malloc(strlen(optarg)+1);
+			strcpy(cacert_file, optarg);
+			break;
 		}
+	}
+
+	/* Pull in configuration data */
+	rt = read_config();
+	switch (rt) {
+	case 0:
+		break;
+	case 1:
+		printf("Error! Cannot read ~/.clickr\n");
+		exit(1);
+	case 2:
+		break;
+	case 3:
+		break;
+	case 4:
+		printf("I require a path to a CA Cert bundle\n");
+		exit(1);
 	}
 
 	if (auth_token == NULL) {
 		printf("To use clickr, you need an api_key and a shared secret from Flickr.\n");
-		printf("See: http://www.flickr.com/services/apps/create/apply\n");
+		printf("See: https://www.flickr.com/services/apps/create/apply\n");
 		exit(1);
 	}
 
