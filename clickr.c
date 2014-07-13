@@ -24,6 +24,8 @@
 
 #define DIGEST_BUFFER_SIZE 129
 
+const char* default_cacert_file = "/usr/lib/ssl/certs/ca-certificates.crt";
+
 char* secret = NULL;
 char* api_key = NULL;
 char* auth_token = NULL;
@@ -558,6 +560,11 @@ int main(int argc, char* argv[])
 	}
 
 	if (do_auth) {
+		if (cacert_file == NULL) {
+			printf("I'm going to assume %s for your CA certs bundle.\n", default_cacert_file);
+			printf("This will be saved into your config.\n");
+			printf("If this is incorrect, you can specify an alternative with the -c flag.\n");
+		}
 		authorise_client();
 		exit(0);
 	}
